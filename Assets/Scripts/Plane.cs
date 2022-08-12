@@ -16,6 +16,24 @@ public class Plane : SceneEntity
         // By default we use the Unity engine for ray-entity collisions.
         // See the parent 'SceneEntity' class definition for details.
         // Task: Replace with your own intersection computations.
-        return base.Intersect(ray);
+        // return base.Intersect(ray);
+
+        float DdotN = Vector3.Dot(ray.direction, Normal);
+        if (DdotN == 0)
+        {
+            return null;
+        }
+
+        float t = Vector3.Dot((Center - ray.origin), Normal);
+        t /= Vector3.Dot(ray.direction, Normal);
+
+        if (t > 0)
+        {
+            RaycastHit isHit = new RaycastHit();
+            isHit.distance = t;
+            return isHit;
+        }
+
+        return null;
     }
 }

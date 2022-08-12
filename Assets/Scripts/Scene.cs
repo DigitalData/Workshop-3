@@ -35,13 +35,71 @@ public class Scene : MonoBehaviour
 
         // Image plane "corner" rays first (frustum edges).
         this.debug.Ray(new Ray(Vector3.zero, NormalizedImageToWorldCoord(0f, 0f)), Color.blue);
-        
+        this.debug.Ray(new Ray(Vector3.zero, NormalizedImageToWorldCoord(0f, 1f)), Color.blue);
+        this.debug.Ray(new Ray(Vector3.zero, NormalizedImageToWorldCoord(1f, 0f)), Color.blue);
+        this.debug.Ray(new Ray(Vector3.zero, NormalizedImageToWorldCoord(1f, 1f)), Color.blue);
+
         // Add more rays to visualise here...
+        for (float y = 0.5f; y < this.image.Height; y++)
+        {
+            for (float x = 0.5f; x < this.image.Width; x++)
+            {
+                showRayThroughGrid(x, y);
+            } 
+        }
+    }
+
+    private Ray rayThroughGrid(float x, float y)
+    {
+        return new Ray(
+            Vector3.zero,
+            NormalizedImageToWorldCoord(x / this.image.Width, y / this.image.Height)
+        );
+    }
+
+    private void showRayThroughGrid(float x, float y)
+    {
+        this.debug.Ray(
+            rayThroughGrid(x, y),
+            Color.white
+        );
     }
 
     private void Render()
     {
-        // Render the image here...
+        // // Render the image here...
+        for (float y = 0.5f; y < this.image.Height; y++)
+        {
+            for (float x = 0.5f; x < this.image.Width; x++)
+            {
+                Ray gridRay = rayThroughGrid(x, y);
+                Color closestColor = Color.black;
+                float closestDistance = Mathf.Infinity;
+                foreach (var sceneEntity in FindObjectsOfType<SceneEntity>())
+                {
+                    // Note: sceneEntity could actually be a Triangle OR Plane OR Sphere.
+                    // But does it matter for the purposes of this exercise?
+                    RaycastHit? intersecting = sceneEntity.Intersect(gridRay);
+                    if(intersecting.HasValue)
+                    {
+                        var dist = intersecting.Value.distance;
+                        if (dist < closestDistance)
+                        {
+                            closestDistance = dist;
+                            closestColor = sceneEntity.Color();
+                        }
+                    }
+                }
+                this.image.SetPixel((int) x, (int) y, closestColor);
+            }
+        }
+
+        // foreach (var sceneEntity in FindObjectsOfType<SceneEntity>())
+        // {
+        //     // Note: sceneEntity could actually be a Triangle OR Plane OR Sphere.
+        //     // But does it matter for the purposes of this exercise?
+        //     sceneEntity
+        // }
     }
 
     private Vector3 NormalizedImageToWorldCoord(float x, float y)
